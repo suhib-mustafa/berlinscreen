@@ -24,7 +24,7 @@ if _env_cmd:
 else:
     AUDIO_CMD = [sys.executable, os.path.join(os.path.dirname(__file__), "play_audio.py")]
 
-ADHAN_FAJR_ENABLED = os.environ.get("ADHAN_FAJR", "1") == "1"
+ADHAN_FAJR_ENABLED = os.environ.get("ADHAN_FAJR", "0") == "1"
 
 PRAYER_CACHE_SECONDS = 24 * 3600
 WEATHER_CACHE_SECONDS = 600
