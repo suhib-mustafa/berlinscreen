@@ -1,0 +1,260 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #0b0f14;
+  color: #e6edf3;
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 0.95fr 3fr;
+  grid-template-rows: auto 0.8fr 1.55fr;
+  grid-template-areas:
+    "clock    clock"
+    "prayer   prayer"
+    "weather  transit";
+  gap: 12px;
+  padding: 12px;
+  height: 100vh;
+  width: 100vw;
+}
+
+.panel {
+  background: #121821;
+  border-radius: 14px;
+  padding: 18px 22px;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* ---------- clock banner ---------- */
+
+.clock {
+  grid-area: clock;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 14px 28px;
+  gap: 20px;
+}
+.clock .bear {
+  height: 72px;
+  width: auto;
+  justify-self: start;
+}
+.clock-time {
+  font-size: 80px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  line-height: 1;
+  justify-self: center;
+}
+.clock-date {
+  text-align: right;
+  justify-self: end;
+  line-height: 1.15;
+}
+.clock-day {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e6edf3;
+}
+.clock-cal {
+  font-size: 15px;
+  font-weight: 500;
+  color: #8b95a2;
+  margin-top: 2px;
+}
+
+/* ---------- prayer banner ---------- */
+
+.prayer {
+  grid-area: prayer;
+  display: grid;
+  grid-template-columns: 1.1fr 2.4fr;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.prayer-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid #222c38;
+  padding-right: 18px;
+}
+.hero-eyebrow {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #f6c700;
+}
+.hero-countdown {
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 6px;
+  color: #e6edf3;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+}
+.hero-detail {
+  font-size: 22px;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-top: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.hero-jumua {
+  font-size: 14px;
+  color: #8ab4f8;
+  margin-top: 10px;
+}
+
+.prayer-tiles {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: 1fr;
+  gap: 10px;
+  height: 100%;
+}
+.prayer-tiles li {
+  background: #0d131b;
+  border-radius: 12px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+}
+.prayer-tiles li.current { outline: 2px solid #f6c700; }
+.prayer-tiles .name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8b95a2;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.prayer-tiles .adhan {
+  font-size: 30px;
+  font-weight: 600;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.prayer-tiles .iqama {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- weather (narrow) ---------- */
+
+.weather {
+  grid-area: weather;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+.weather-icon {
+  font-size: 96px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.weather-temp {
+  font-size: 64px;
+  font-weight: 200;
+  line-height: 1;
+}
+.weather-desc {
+  font-size: 17px;
+  color: #cbd5e1;
+}
+.weather-meta {
+  font-size: 13px;
+  color: #8b95a2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+/* ---------- transit (BVG U-Bahn style) ---------- */
+
+.transit {
+  grid-area: transit;
+  background: #000;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.transit-header {
+  display: grid;
+  grid-template-columns: 110px 1fr 130px;
+  gap: 16px;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-weight: 700;
+  font-size: 17px;
+  color: #f6c700;
+  border-bottom: 2px solid #2a2a2a;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  letter-spacing: 1.5px;
+}
+.transit-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  overflow: hidden;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+}
+.transit-stop {
+  border-bottom: 1px dashed #1f1f1f;
+  padding: 4px 0;
+}
+.transit-stop:last-child { border-bottom: 0; }
+.transit-stop-name {
+  font-size: 13px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 3px;
+}
+.transit-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 130px;
+  gap: 16px;
+  align-items: center;
+  color: #f6c700;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+.transit-row.delayed { color: #f59e0b; }
+.transit-row.cancelled { color: #6b1f1f; text-decoration: line-through; }
+.transit-row .line { font-weight: 700; }
+.transit-row .ziel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.transit-row .abfahrt { text-align: right; }
+.transit-empty {
+  color: #555;
+  font-size: 14px;
+  font-style: italic;
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BerlinScreen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="grid">
+
+  <section class="panel clock">
+    <img class="bear" src="{{ url_for('static', filename='img/bear.svg') }}" alt="Berlin">
+    <div class="clock-time" data-field="clock-time">--:--</div>
+    <div class="clock-date">
+      <div class="clock-day" data-field="clock-day">—</div>
+      <div class="clock-cal" data-field="clock-cal">—</div>
+    </div>
+  </section>
+
+  <section class="panel prayer">
+    <div class="prayer-hero">
+      <div class="hero-eyebrow" data-field="next-eyebrow">Next prayer</div>
+      <div class="hero-countdown" data-field="next-countdown">—</div>
+      <div class="hero-detail" data-field="next-detail">— at --:--</div>
+      <div class="hero-jumua" data-field="jumua"></div>
+    </div>
+    <ul class="prayer-tiles" data-field="list"></ul>
+  </section>
+
+  <section class="panel weather">
+    <div class="weather-icon" data-field="icon">•</div>
+    <div class="weather-temp" data-field="temp">--°</div>
+    <div class="weather-desc" data-field="desc">—</div>
+    <div class="weather-meta">
+      <span data-field="wind"></span>
+      <span data-field="humidity"></span>
+    </div>
+  </section>
+
+  <section class="panel transit">
+    <header class="transit-header">
+      <span>Linie</span>
+      <span>Ziel</span>
+      <span>Abfahrt</span>
+    </header>
+    <div class="transit-body" data-field="stops"></div>
+  </section>
+
+</main>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

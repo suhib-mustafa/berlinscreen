@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+.tmp_*
+.claude/
+audio/*.mp3
+audio/*.wav
+!audio/.gitkeep

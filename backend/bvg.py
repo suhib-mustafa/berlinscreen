@@ -1,0 +1,109 @@
+from __future__ import annotations
+
+import datetime as dt
+import threading
+import time
+
+import requests
+
+import config
+
+_lock = threading.Lock()
+_stop_ids: dict[str, str] = {}
+_dep_cache: dict[str, tuple[float, list[dict]]] = {}
+
+
+def _resolve_stop_id(query: str) -> str | None:
+    if query in _stop_ids:
+        return _stop_ids[query]
+    r = requests.get(
+        f"{config.BVG_BASE}/locations",
+        params={"query": query, "results": 5, "stops": "true", "addresses": "false", "poi": "false"},
+        timeout=15,
+    )
+    r.raise_for_status()
+    items = r.json()
+    stop_id = None
+    for item in items:
+        if item.get("type") == "stop":
+            stop_id = item.get("id")
+            break
+    if stop_id:
+        _stop_ids[query] = stop_id
+    return stop_id
+
+
+def _fetch_departures(stop_id: str) -> list[dict]:
+    r = requests.get(
+        f"{config.BVG_BASE}/stops/{stop_id}/departures",
+        params={"duration": 120, "results": 40},
+        timeout=15,
+    )
+    r.raise_for_status()
+    body = r.json()
+    return body.get("departures", [])
+
+
+def _cached_departures(stop_id: str) -> list[dict]:
+    now = time.time()
+    with _lock:
+        entry = _dep_cache.get(stop_id)
+    if entry and now - entry[0] < config.TRANSIT_CACHE_SECONDS:
+        return entry[1]
+    deps = _fetch_departures(stop_id)
+    with _lock:
+        _dep_cache[stop_id] = (now, deps)
+    return deps
+
+
+def _minutes_until(iso: str | None) -> int | None:
+    if not iso:
+        return None
+    try:
+        when = dt.datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    now = dt.datetime.now(when.tzinfo)
+    delta = (when - now).total_seconds()
+    return int(delta // 60)
+
+
+def _filter_and_shape(deps: list[dict], lines: list[str], direction_contains: str | None) -> list[dict]:
+    out = []
+    for d in deps:
+        line = (d.get("line") or {}).get("name") or ""
+        if line not in lines:
+            continue
+        direction = d.get("direction") or ""
+        if direction_contains and direction_contains.lower() not in direction.lower():
+            continue
+        out.append({
+            "line": line,
+            "direction": direction,
+            "when": d.get("when"),
+            "plannedWhen": d.get("plannedWhen"),
+            "delay_seconds": d.get("delay"),
+            "in_minutes": _minutes_until(d.get("when") or d.get("plannedWhen")),
+            "cancelled": bool(d.get("cancelled")),
+        })
+    out.sort(key=lambda x: (x["in_minutes"] is None, x["in_minutes"] if x["in_minutes"] is not None else 9999))
+    return out[:6]
+
+
+def snapshot() -> list[dict]:
+    out = []
+    for stop in config.STOPS:
+        entry = {"stop": stop["name"], "departures": [], "error": None}
+        try:
+            stop_id = _resolve_stop_id(stop["query"])
+            if not stop_id:
+                entry["error"] = "stop not found"
+            else:
+                deps = _cached_departures(stop_id)
+                entry["departures"] = _filter_and_shape(
+                    deps, stop["lines"], stop.get("direction_contains"),
+                )
+        except requests.RequestException as e:
+            entry["error"] = f"network: {e}"
+        out.append(entry)
+    return out
