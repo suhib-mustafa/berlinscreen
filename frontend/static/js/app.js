@@ -202,6 +202,40 @@ async function refreshTransit() {
   }
 }
 
+function chipClass(outages) {
+  if (outages == null) return "is-unknown";
+  if (outages === 0) return "is-ok";
+  if (outages === 1) return "is-warn";
+  return "is-bad";
+}
+
+function chipText(outages) {
+  if (outages == null) return "—";
+  if (outages === 0) return "✓";
+  return String(outages);
+}
+
+async function refreshFacility() {
+  try {
+    const data = await fetchJSON("/api/facility");
+    const strip = fieldEl("facility");
+    if (!strip) return;
+    strip.innerHTML = "";
+    const items = [];
+    for (const entry of data.ubahn || []) items.push({ label: entry.line, outages: entry.outages });
+    for (const entry of data.sbahn || []) items.push({ label: entry.station, outages: entry.outages });
+    for (const it of items) {
+      const chip = document.createElement("div");
+      chip.className = "facility-chip " + chipClass(it.outages);
+      chip.innerHTML = `<span class="facility-label">${it.label}</span>${chipText(it.outages)}`;
+      strip.appendChild(chip);
+    }
+  } catch (e) {
+    const strip = fieldEl("facility");
+    if (strip) strip.innerHTML = `<div class="facility-chip is-unknown">facility: ${e.message || e}</div>`;
+  }
+}
+
 function tick() {
   renderClock();
 }
@@ -211,10 +245,12 @@ function boot() {
   refreshPrayer();
   refreshWeather();
   refreshTransit();
+  refreshFacility();
   setInterval(tick, 1000);
   setInterval(refreshPrayer, 60 * 1000);
   setInterval(refreshWeather, 5 * 60 * 1000);
   setInterval(refreshTransit, 30 * 1000);
+  setInterval(refreshFacility, 5 * 60 * 1000);
 }
 
 boot();

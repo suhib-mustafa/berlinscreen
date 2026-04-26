@@ -44,3 +44,16 @@ TRANSIT_CACHE_SECONDS = 30
 SCREEN_CONTROL_ENABLED = os.environ.get("SCREEN_CONTROL", "1") == "1"
 SCREEN_OFF_HOUR = int(os.environ.get("SCREEN_OFF_HOUR", "23"))
 SCREEN_ON_HOUR = int(os.environ.get("SCREEN_ON_HOUR", "6"))
+
+# Facility status (escalators / elevators).
+# S-Bahn fetcher uses Deutsche Bahn's FaSta API — needs a free key from
+# developers.deutschebahn.com; without it the S-Bahn entries return
+# outages=None and the dashboard renders a placeholder.
+# U-Bahn fetcher is currently a stub: BVG does not publish a clean JSON
+# endpoint as of 2026-04, see backend/facility.py for the search history.
+DB_FASTA_API_KEY = os.environ.get("DB_FASTA_API_KEY", "")
+WATCHED_LINES = [s for s in os.environ.get("WATCHED_LINES", "U6,U7,U8").split(",") if s.strip()]
+WATCHED_SBAHN_STATIONS = [
+    {"name": "S-Wedding", "station_number": 8089137},
+]
+FACILITY_CACHE_SECONDS = 600  # 10 min — facility status changes slowly
