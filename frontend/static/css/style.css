@@ -190,6 +190,20 @@ html, body {
   gap: 2px;
   margin-top: 6px;
 }
+.weather-rain {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b95a2;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #0d131b;
+  letter-spacing: 0.3px;
+}
+.weather-rain.is-wet {
+  color: #0b0f14;
+  background: #93c5fd;
+}
 
 /* ---------- transit (BVG U-Bahn style) ---------- */
 

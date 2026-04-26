@@ -1,3 +1,4 @@
+import datetime as dt
 import threading
 import time
 
@@ -43,12 +44,15 @@ def _wmo(code):
     return desc, icon
 
 
+_RAIN_MM_THRESHOLD = 0.1  # mm — anything below this is "trace", treat as dry
+
+
 def _fetch() -> dict:
     params = {
         "latitude": config.LATITUDE,
         "longitude": config.LONGITUDE,
         "current": "temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m",
-        "hourly": "temperature_2m,weather_code",
+        "hourly": "temperature_2m,weather_code,precipitation,precipitation_probability",
         "forecast_hours": 12,
         "timezone": config.TIMEZONE,
     }
@@ -58,6 +62,18 @@ def _fetch() -> dict:
     cur = raw.get("current", {})
     hourly = raw.get("hourly", {})
     cur_desc, cur_icon = _wmo(cur.get("weather_code"))
+    hourly_entries = [
+        {
+            "time": t,
+            "temp": (hourly.get("temperature_2m") or [None])[i],
+            "code": (hourly.get("weather_code") or [None])[i],
+            "description": _wmo((hourly.get("weather_code") or [None])[i])[0],
+            "icon":        _wmo((hourly.get("weather_code") or [None])[i])[1],
+            "precipitation_mm": (hourly.get("precipitation") or [None])[i],
+            "precipitation_probability": (hourly.get("precipitation_probability") or [None])[i],
+        }
+        for i, t in enumerate(hourly.get("time", []))
+    ]
     data = {
         "current": {
             "temp": cur.get("temperature_2m"),
@@ -67,18 +83,51 @@ def _fetch() -> dict:
             "wind": cur.get("wind_speed_10m"),
             "humidity": cur.get("relative_humidity_2m"),
         },
-        "hourly": [
-            {
-                "time": t,
-                "temp": hourly.get("temperature_2m", [None])[i],
-                "code": (hourly.get("weather_code") or [None])[i],
-                "description": _wmo((hourly.get("weather_code") or [None])[i])[0],
-                "icon":        _wmo((hourly.get("weather_code") or [None])[i])[1],
-            }
-            for i, t in enumerate(hourly.get("time", []))
-        ],
+        "hourly": hourly_entries,
+        "next_2h": _summarize_next_2h(hourly_entries),
     }
     return data
+
+
+def _summarize_next_2h(hourly: list) -> dict:
+    """Return {"mm": float, "max_probability": int, "summary": str} for the next ~2h."""
+    now = dt.datetime.now()
+    upcoming = []
+    for h in hourly:
+        try:
+            ts = dt.datetime.fromisoformat(h["time"])
+        except (KeyError, ValueError):
+            continue
+        if ts >= now.replace(minute=0, second=0, microsecond=0):
+            upcoming.append((ts, h))
+        if len(upcoming) >= 3:
+            break
+
+    if not upcoming:
+        return {"mm": 0, "max_probability": 0, "summary": "—"}
+
+    total_mm = sum((h.get("precipitation_mm") or 0) for _, h in upcoming)
+    max_prob = max(((h.get("precipitation_probability") or 0) for _, h in upcoming), default=0)
+    rain = [(ts, h) for ts, h in upcoming if (h.get("precipitation_mm") or 0) >= _RAIN_MM_THRESHOLD]
+
+    if not rain:
+        return {
+            "mm": round(total_mm, 1),
+            "max_probability": int(max_prob),
+            "summary": "Dry next 2h",
+        }
+
+    first_ts, _ = rain[0]
+    minutes = int(max(0, (first_ts - now).total_seconds() // 60))
+    if minutes <= 10:
+        summary = f"Rain now · {total_mm:.1f} mm next 2h"
+    else:
+        summary = f"Rain in ~{minutes} min · {total_mm:.1f} mm next 2h"
+    return {
+        "mm": round(total_mm, 1),
+        "max_probability": int(max_prob),
+        "summary": summary,
+    }
 
 
 def snapshot() -> dict:

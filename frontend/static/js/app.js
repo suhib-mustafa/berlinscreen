@@ -107,6 +107,16 @@ async function refreshWeather() {
     fieldEl("desc").textContent = c.description || "—";
     fieldEl("wind").textContent = c.wind != null ? `wind ${Math.round(c.wind)} km/h` : "";
     fieldEl("humidity").textContent = c.humidity != null ? `${c.humidity}% humidity` : "";
+
+    const rainEl = fieldEl("rain");
+    const next2h = data.next_2h;
+    if (next2h && next2h.summary) {
+      rainEl.textContent = next2h.summary;
+      rainEl.classList.toggle("is-wet", next2h.mm > 0);
+    } else {
+      rainEl.textContent = "";
+      rainEl.classList.remove("is-wet");
+    }
   } catch (e) {
     fieldEl("desc").textContent = "weather err";
   }
