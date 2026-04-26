@@ -26,6 +26,14 @@ else:
 
 ADHAN_FAJR_ENABLED = os.environ.get("ADHAN_FAJR", "0") == "1"
 
+# Smart Adhan volume: lower the system volume when the prayer falls within
+# the configured quiet hours. End hour is exclusive (e.g. 22..7 = 22:00 inclusive
+# through 06:59 inclusive). Values 0–100.
+QUIET_HOURS_START = int(os.environ.get("QUIET_HOURS_START", "22"))
+QUIET_HOURS_END = int(os.environ.get("QUIET_HOURS_END", "7"))
+QUIET_VOLUME_PCT = int(os.environ.get("QUIET_VOLUME_PCT", "50"))
+NORMAL_VOLUME_PCT = int(os.environ.get("NORMAL_VOLUME_PCT", "90"))
+
 PRAYER_CACHE_SECONDS = 24 * 3600
 WEATHER_CACHE_SECONDS = 600
 TRANSIT_CACHE_SECONDS = 30
