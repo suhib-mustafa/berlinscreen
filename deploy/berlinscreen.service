@@ -8,6 +8,9 @@ Type=simple
 User=suhib91
 WorkingDirectory=/home/suhib91/berlinscreen/backend
 Environment=PYTHONIOENCODING=utf-8
+# Secrets and per-host overrides live in /etc/berlinscreen.env. The leading `-`
+# tells systemd to start anyway if the file is missing.
+EnvironmentFile=-/etc/berlinscreen.env
 ExecStart=/home/suhib91/berlinscreen/backend/.venv/bin/python app.py
 Restart=always
 RestartSec=5

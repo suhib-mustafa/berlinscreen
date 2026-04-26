@@ -13,6 +13,20 @@ HOME_DIR="$(getent passwd "$USER_NAME" | cut -d: -f6)"
 echo "==> Installing systemd service"
 sudo cp "$DIR/berlinscreen.service" /etc/systemd/system/berlinscreen.service
 sudo systemctl daemon-reload
+
+echo "==> Setting up /etc/berlinscreen.env"
+ENV_FILE="/etc/berlinscreen.env"
+if [ ! -f "$ENV_FILE" ]; then
+  sudo cp "$DIR/berlinscreen.env.example" "$ENV_FILE"
+  sudo chown root:root "$ENV_FILE"
+  sudo chmod 600 "$ENV_FILE"
+  echo "    created $ENV_FILE (mode 600). Edit with:"
+  echo "      sudo nano $ENV_FILE"
+  echo "    then: sudo systemctl restart berlinscreen"
+else
+  echo "    $ENV_FILE already exists, leaving it alone"
+fi
+
 sudo systemctl enable berlinscreen
 sudo systemctl restart berlinscreen
 echo "    systemctl status berlinscreen   # to verify"
