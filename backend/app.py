@@ -5,6 +5,7 @@ from flask import Flask, jsonify, render_template
 import adhan
 import bvg
 import mawaqit
+import screen
 import weather
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -53,6 +54,7 @@ def api_test_adhan():
 
 def _start_background_jobs():
     adhan.start()
+    screen.start()
 
 
 _start_background_jobs()

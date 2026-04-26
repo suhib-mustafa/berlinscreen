@@ -29,3 +29,10 @@ ADHAN_FAJR_ENABLED = os.environ.get("ADHAN_FAJR", "0") == "1"
 PRAYER_CACHE_SECONDS = 24 * 3600
 WEATHER_CACHE_SECONDS = 600
 TRANSIT_CACHE_SECONDS = 30
+
+# Auto screen-off at night. The connected display is blanked between
+# SCREEN_OFF_HOUR (inclusive) and SCREEN_ON_HOUR (exclusive); the wrap
+# around midnight is handled. SCREEN_CONTROL_ENABLED=0 disables the feature.
+SCREEN_CONTROL_ENABLED = os.environ.get("SCREEN_CONTROL", "1") == "1"
+SCREEN_OFF_HOUR = int(os.environ.get("SCREEN_OFF_HOUR", "23"))
+SCREEN_ON_HOUR = int(os.environ.get("SCREEN_ON_HOUR", "6"))
