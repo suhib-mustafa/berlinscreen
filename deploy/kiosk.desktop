@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=BerlinScreen Kiosk
+Comment=Open the dashboard fullscreen at session start
+Exec=sh -c 'sleep 8 && exec chromium --kiosk --noerrdialogs --disable-infobars --no-first-run --disable-features=TranslateUI --disable-gcm http://localhost:5000'
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Terminal=false

@@ -4,7 +4,9 @@ from flask import Flask, jsonify, render_template
 
 import adhan
 import bvg
+import facility
 import mawaqit
+import screen
 import weather
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,6 +47,14 @@ def api_transit():
         return jsonify({"error": str(e)}), 502
 
 
+@app.route("/api/facility")
+def api_facility():
+    try:
+        return jsonify(facility.snapshot())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
 @app.route("/api/test-adhan", methods=["GET", "POST"])
 def api_test_adhan():
     adhan.play_now()
@@ -53,6 +63,7 @@ def api_test_adhan():
 
 def _start_background_jobs():
     adhan.start()
+    screen.start()
 
 
 _start_background_jobs()

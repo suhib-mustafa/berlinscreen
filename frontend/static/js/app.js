@@ -75,6 +75,15 @@ async function refreshPrayer() {
     fieldEl("next-countdown").textContent = fmtDuration(next.at - new Date());
     fieldEl("next-detail").textContent = `${LABELS[next.name]} at ${next.time}`;
 
+    const hijriEl = fieldEl("clock-hijri");
+    if (data.hijri) {
+      hijriEl.textContent = `${data.hijri.day} ${data.hijri.month_name} ${data.hijri.year} AH`;
+      hijriEl.style.display = "";
+    } else {
+      hijriEl.textContent = "";
+      hijriEl.style.display = "none";
+    }
+
     const list = fieldEl("list");
     list.innerHTML = "";
     for (const name of TILE_ORDER) {
@@ -107,6 +116,16 @@ async function refreshWeather() {
     fieldEl("desc").textContent = c.description || "—";
     fieldEl("wind").textContent = c.wind != null ? `wind ${Math.round(c.wind)} km/h` : "";
     fieldEl("humidity").textContent = c.humidity != null ? `${c.humidity}% humidity` : "";
+
+    const rainEl = fieldEl("rain");
+    const next2h = data.next_2h;
+    if (next2h && next2h.summary) {
+      rainEl.textContent = next2h.summary;
+      rainEl.classList.toggle("is-wet", next2h.mm > 0);
+    } else {
+      rainEl.textContent = "";
+      rainEl.classList.remove("is-wet");
+    }
   } catch (e) {
     fieldEl("desc").textContent = "weather err";
   }
@@ -115,6 +134,32 @@ async function refreshWeather() {
 async function refreshTransit() {
   try {
     const data = await fetchJSON("/api/transit");
+
+    const banner = fieldEl("disruptions");
+    const allDisruptions = [];
+    const seen = new Set();
+    for (const entry of data) {
+      for (const d of (entry.disruptions || [])) {
+        const key = `${d.line}|${(d.summary || "").slice(0, 80)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        allDisruptions.push(d);
+      }
+    }
+    if (allDisruptions.length) {
+      banner.innerHTML = "";
+      for (const d of allDisruptions.slice(0, 3)) {
+        const row = document.createElement("div");
+        row.className = "disruption-row";
+        row.innerHTML = `<span class="disruption-line">${d.line}</span>${d.summary}`;
+        banner.appendChild(row);
+      }
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+      banner.innerHTML = "";
+    }
+
     const container = fieldEl("stops");
     container.innerHTML = "";
     for (const entry of data) {
@@ -136,15 +181,30 @@ async function refreshTransit() {
         empty.textContent = "—";
         stop.appendChild(empty);
       } else {
-        for (const d of entry.departures.slice(0, 2)) {
+        // Group departures by (line, direction) so one row shows the next
+        // few times together: e.g. "U6  Alt-Mariendorf  12' 5' now".
+        const groups = new Map();
+        for (const d of entry.departures) {
+          const key = `${d.line}|${d.direction}`;
+          let g = groups.get(key);
+          if (!g) {
+            g = { line: d.line, direction: d.direction, times: [], cancelled: false, delayed: false };
+            groups.set(key, g);
+          }
+          if (g.times.length < 3) g.times.push(d.in_minutes);
+          if (d.cancelled) g.cancelled = true;
+          if (d.delay_seconds && d.delay_seconds > 60) g.delayed = true;
+        }
+        for (const g of [...groups.values()].slice(0, 2)) {
           const row = document.createElement("div");
           row.className = "transit-row";
-          if (d.cancelled) row.classList.add("cancelled");
-          else if (d.delay_seconds && d.delay_seconds > 60) row.classList.add("delayed");
+          if (g.cancelled) row.classList.add("cancelled");
+          else if (g.delayed) row.classList.add("delayed");
+          const times = g.times.map(fmtMinutes).join(" ");
           row.innerHTML = `
-            <span class="line">${d.line}</span>
-            <span class="ziel">${d.direction}</span>
-            <span class="abfahrt">${fmtMinutes(d.in_minutes)}</span>
+            <span class="line">${g.line}</span>
+            <span class="ziel">${g.direction}</span>
+            <span class="abfahrt">${times}</span>
           `;
           stop.appendChild(row);
         }
@@ -157,19 +217,77 @@ async function refreshTransit() {
   }
 }
 
+function chipClass(outages) {
+  if (outages == null) return "is-unknown";
+  if (outages === 0) return "is-ok";
+  if (outages === 1) return "is-warn";
+  return "is-bad";
+}
+
+function chipText(outages) {
+  if (outages == null) return "—";
+  if (outages === 0) return "✓";
+  return String(outages);
+}
+
+async function refreshFacility() {
+  try {
+    const data = await fetchJSON("/api/facility");
+    const strip = fieldEl("facility");
+    if (!strip) return;
+    strip.innerHTML = "";
+    const items = [];
+    for (const entry of data.ubahn || []) items.push({ label: entry.line, outages: entry.outages });
+    for (const entry of data.sbahn || []) items.push({ label: entry.station, outages: entry.outages });
+    for (const it of items) {
+      const chip = document.createElement("div");
+      chip.className = "facility-chip " + chipClass(it.outages);
+      chip.innerHTML = `<span class="facility-label">${it.label}</span>${chipText(it.outages)}`;
+      strip.appendChild(chip);
+    }
+  } catch (e) {
+    const strip = fieldEl("facility");
+    if (strip) strip.innerHTML = `<div class="facility-chip is-unknown">facility: ${e.message || e}</div>`;
+  }
+}
+
 function tick() {
   renderClock();
 }
 
+function applySimulateMode() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has("simulate")) return;
+  const root = document.documentElement;
+  const variant = params.get("simulate") || "800";
+  root.classList.add("simulate-pi");
+  if (variant === "1024" || variant === "1024x600") root.classList.add("simulate-1024");
+  const label = document.createElement("div");
+  label.className = "simulate-label";
+  label.textContent = root.classList.contains("simulate-1024") ? "SIM 1024×600" : "SIM 800×480";
+  document.body.appendChild(label);
+}
+
+const COMPACT_QUERY = window.matchMedia("(max-width: 1100px) and (max-height: 700px)");
+function syncCompact() {
+  const simulating = document.documentElement.classList.contains("simulate-pi");
+  document.body.classList.toggle("is-compact", simulating || COMPACT_QUERY.matches);
+}
+
 function boot() {
+  applySimulateMode();
+  syncCompact();
+  COMPACT_QUERY.addEventListener("change", syncCompact);
   renderClock();
   refreshPrayer();
   refreshWeather();
   refreshTransit();
+  refreshFacility();
   setInterval(tick, 1000);
   setInterval(refreshPrayer, 60 * 1000);
   setInterval(refreshWeather, 5 * 60 * 1000);
   setInterval(refreshTransit, 30 * 1000);
+  setInterval(refreshFacility, 5 * 60 * 1000);
 }
 
 boot();

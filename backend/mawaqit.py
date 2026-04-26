@@ -9,6 +9,11 @@ import requests
 
 import config
 
+try:
+    from hijri_converter import Gregorian
+except ImportError:
+    Gregorian = None
+
 _PRAYER_NAMES = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
 
 _lock = threading.Lock()
@@ -89,6 +94,26 @@ def _apply_offset(hhmm: str, offset: str) -> str:
     return f"{total // 60:02d}:{total % 60:02d}"
 
 
+def _compute_hijri(today: dt.date, adjustment: int):
+    """Convert today's Gregorian date to Hijri, applying the mosque's adjustment.
+
+    Returns dict with day/month/month_name/year, or None if conversion is unavailable.
+    """
+    if Gregorian is None:
+        return None
+    try:
+        adjusted = today + dt.timedelta(days=int(adjustment or 0))
+        h = Gregorian(adjusted.year, adjusted.month, adjusted.day).to_hijri()
+        return {
+            "day": h.day,
+            "month": h.month,
+            "month_name": h.month_name(),
+            "year": h.year,
+        }
+    except Exception:
+        return None
+
+
 def snapshot(today: dt.date | None = None) -> dict:
     if today is None:
         today = dt.datetime.now().date()
@@ -109,6 +134,7 @@ def snapshot(today: dt.date | None = None) -> dict:
     if is_friday:
         jumua = [t for t in [conf.get("jumua"), conf.get("jumua2"), conf.get("jumua3")] if t]
 
+    adjustment = conf.get("hijriAdjustment", 0)
     return {
         "date": today.isoformat(),
         "mosque": conf.get("label") or conf.get("name"),
@@ -116,7 +142,8 @@ def snapshot(today: dt.date | None = None) -> dict:
         "adhan": adhan,
         "iqama": iqama,
         "jumua": jumua,
-        "hijri_adjustment": conf.get("hijriAdjustment", 0),
+        "hijri_adjustment": adjustment,
+        "hijri": _compute_hijri(today, adjustment),
     }
 
 
