@@ -69,3 +69,8 @@ WATCHED_SBAHN_STATIONS = [
     {"name": "S-Wedding", "station_number": 8089137},
 ]
 FACILITY_CACHE_SECONDS = 600  # 10 min — facility status changes slowly
+
+# DeepL translation for BVG disruption messages (German -> English).
+# Free tier signup: https://www.deepl.com/pro-api  (free keys end in ":fx").
+# When unset, disruption messages stay in German verbatim from BVG.
+DEEPL_API_KEY = os.environ.get("DEEPL_API_KEY", "")

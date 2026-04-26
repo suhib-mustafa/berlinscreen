@@ -70,6 +70,51 @@ def _minutes_until(iso: str | None) -> int | None:
 
 _DISRUPTION_TYPES = {"warning", "status"}
 
+# Translation cache: German source string -> English translation. Keyed by the
+# raw German since BVG repeats the same text across departures and across
+# polling cycles. In-memory only — restart re-translates, which is fine.
+_translation_cache: dict[str, str] = {}
+_translation_lock = threading.Lock()
+
+
+def _translate_de_to_en(text: str) -> str:
+    """Translate via DeepL if configured; otherwise return the original.
+
+    Failures (network, auth, rate-limit) silently fall back to the German
+    source so a translation outage never blocks disruption rendering.
+    """
+    if not text or not config.DEEPL_API_KEY:
+        return text
+    with _translation_lock:
+        cached = _translation_cache.get(text)
+    if cached is not None:
+        return cached
+
+    # Free-tier keys end in ":fx" and use a different endpoint.
+    is_free = config.DEEPL_API_KEY.endswith(":fx")
+    url = (
+        "https://api-free.deepl.com/v2/translate"
+        if is_free
+        else "https://api.deepl.com/v2/translate"
+    )
+    try:
+        r = requests.post(
+            url,
+            headers={"Authorization": f"DeepL-Auth-Key {config.DEEPL_API_KEY}"},
+            data={"text": text, "target_lang": "EN"},
+            timeout=8,
+        )
+        r.raise_for_status()
+        translations = (r.json() or {}).get("translations") or []
+        if translations:
+            translated = translations[0].get("text") or text
+            with _translation_lock:
+                _translation_cache[text] = translated
+            return translated
+    except (requests.RequestException, ValueError):
+        pass
+    return text
+
 
 def _extract_remarks(d: dict, line: str, seen: set, out: list) -> None:
     """Append unique disruption-style remarks from a departure into `out`.
@@ -88,7 +133,12 @@ def _extract_remarks(d: dict, line: str, seen: set, out: list) -> None:
         if key in seen:
             continue
         seen.add(key)
-        out.append({"line": line, "summary": summary, "code": code, "type": rtype})
+        out.append({
+            "line": line,
+            "summary": _translate_de_to_en(summary),
+            "code": code,
+            "type": rtype,
+        })
 
 
 def _filter_and_shape(deps: list[dict], lines: list[str], direction_contains: str | None):
