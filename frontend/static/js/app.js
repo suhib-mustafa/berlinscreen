@@ -75,6 +75,15 @@ async function refreshPrayer() {
     fieldEl("next-countdown").textContent = fmtDuration(next.at - new Date());
     fieldEl("next-detail").textContent = `${LABELS[next.name]} at ${next.time}`;
 
+    const hijriEl = fieldEl("clock-hijri");
+    if (data.hijri) {
+      hijriEl.textContent = `${data.hijri.day} ${data.hijri.month_name} ${data.hijri.year} AH`;
+      hijriEl.style.display = "";
+    } else {
+      hijriEl.textContent = "";
+      hijriEl.style.display = "none";
+    }
+
     const list = fieldEl("list");
     list.innerHTML = "";
     for (const name of TILE_ORDER) {
