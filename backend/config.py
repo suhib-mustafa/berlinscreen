@@ -2,6 +2,18 @@ import os
 import shlex
 import sys
 
+# Load /project-root/.env if present, before any os.environ.get below.
+# Optional — silently no-ops if python-dotenv isn't installed (e.g. on a
+# minimal Pi setup) or if the .env file doesn't exist. The file is meant
+# for laptop dev; on the Pi we use systemd's EnvironmentFile=/etc/berlinscreen.env.
+try:
+    from dotenv import load_dotenv
+    _project_root_env = os.path.join(os.path.dirname(__file__), "..", ".env")
+    if os.path.exists(_project_root_env):
+        load_dotenv(_project_root_env)
+except ImportError:
+    pass
+
 MOSQUE_URL = "https://mawaqit.net/en/msjd-lzytwn-seituna-moschee-berlin-14059-germany"
 
 LATITUDE = 52.5154748
