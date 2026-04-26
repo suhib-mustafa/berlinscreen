@@ -221,6 +221,36 @@ html, body {
   display: flex;
   flex-direction: column;
 }
+.transit-disruptions {
+  background: #7f1d1d;
+  color: #fef2f2;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  letter-spacing: 0.3px;
+  max-height: 60px;
+  overflow: hidden;
+}
+.transit-disruptions .disruption-row {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.transit-disruptions .disruption-line {
+  display: inline-block;
+  background: #fef2f2;
+  color: #7f1d1d;
+  padding: 0 6px;
+  border-radius: 3px;
+  margin-right: 8px;
+  font-weight: 800;
+}
 .transit-header {
   display: grid;
   grid-template-columns: 110px 1fr 130px;

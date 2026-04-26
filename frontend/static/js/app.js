@@ -134,6 +134,32 @@ async function refreshWeather() {
 async function refreshTransit() {
   try {
     const data = await fetchJSON("/api/transit");
+
+    const banner = fieldEl("disruptions");
+    const allDisruptions = [];
+    const seen = new Set();
+    for (const entry of data) {
+      for (const d of (entry.disruptions || [])) {
+        const key = `${d.line}|${(d.summary || "").slice(0, 80)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        allDisruptions.push(d);
+      }
+    }
+    if (allDisruptions.length) {
+      banner.innerHTML = "";
+      for (const d of allDisruptions.slice(0, 3)) {
+        const row = document.createElement("div");
+        row.className = "disruption-row";
+        row.innerHTML = `<span class="disruption-line">${d.line}</span>${d.summary}`;
+        banner.appendChild(row);
+      }
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+      banner.innerHTML = "";
+    }
+
     const container = fieldEl("stops");
     container.innerHTML = "";
     for (const entry of data) {
