@@ -14,11 +14,37 @@ _lock = threading.Lock()
 _thread: threading.Thread | None = None
 
 
+def _is_quiet_hour(hour: int) -> bool:
+    start, end = config.QUIET_HOURS_START, config.QUIET_HOURS_END
+    if start == end:
+        return False
+    if start < end:
+        return start <= hour < end
+    # wraps midnight (e.g. 22..7)
+    return hour >= start or hour < end
+
+
+def _set_volume_for_now() -> None:
+    hour = dt.datetime.now().hour
+    pct = config.QUIET_VOLUME_PCT if _is_quiet_hour(hour) else config.NORMAL_VOLUME_PCT
+    try:
+        subprocess.run(
+            ["pactl", "set-sink-volume", "@DEFAULT_SINK@", f"{pct}%"],
+            check=False, timeout=3,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        # No PulseAudio/PipeWire here (e.g. Windows dev box) — playback proceeds
+        # at whatever the OS-default volume is.
+        pass
+
+
 def _play():
     path = os.path.abspath(config.AUDIO_FILE)
     if not os.path.exists(path):
         print(f"[adhan] audio file missing at {path} — skipping playback")
         return
+    _set_volume_for_now()
     cmd = list(config.AUDIO_CMD) + [path]
     try:
         subprocess.Popen(cmd)
