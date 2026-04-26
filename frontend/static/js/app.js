@@ -181,15 +181,30 @@ async function refreshTransit() {
         empty.textContent = "—";
         stop.appendChild(empty);
       } else {
-        for (const d of entry.departures.slice(0, 2)) {
+        // Group departures by (line, direction) so one row shows the next
+        // few times together: e.g. "U6  Alt-Mariendorf  12' 5' now".
+        const groups = new Map();
+        for (const d of entry.departures) {
+          const key = `${d.line}|${d.direction}`;
+          let g = groups.get(key);
+          if (!g) {
+            g = { line: d.line, direction: d.direction, times: [], cancelled: false, delayed: false };
+            groups.set(key, g);
+          }
+          if (g.times.length < 3) g.times.push(d.in_minutes);
+          if (d.cancelled) g.cancelled = true;
+          if (d.delay_seconds && d.delay_seconds > 60) g.delayed = true;
+        }
+        for (const g of [...groups.values()].slice(0, 2)) {
           const row = document.createElement("div");
           row.className = "transit-row";
-          if (d.cancelled) row.classList.add("cancelled");
-          else if (d.delay_seconds && d.delay_seconds > 60) row.classList.add("delayed");
+          if (g.cancelled) row.classList.add("cancelled");
+          else if (g.delayed) row.classList.add("delayed");
+          const times = g.times.map(fmtMinutes).join(" ");
           row.innerHTML = `
-            <span class="line">${d.line}</span>
-            <span class="ziel">${d.direction}</span>
-            <span class="abfahrt">${fmtMinutes(d.in_minutes)}</span>
+            <span class="line">${g.line}</span>
+            <span class="ziel">${g.direction}</span>
+            <span class="abfahrt">${times}</span>
           `;
           stop.appendChild(row);
         }
@@ -240,7 +255,29 @@ function tick() {
   renderClock();
 }
 
+function applySimulateMode() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has("simulate")) return;
+  const root = document.documentElement;
+  const variant = params.get("simulate") || "800";
+  root.classList.add("simulate-pi");
+  if (variant === "1024" || variant === "1024x600") root.classList.add("simulate-1024");
+  const label = document.createElement("div");
+  label.className = "simulate-label";
+  label.textContent = root.classList.contains("simulate-1024") ? "SIM 1024×600" : "SIM 800×480";
+  document.body.appendChild(label);
+}
+
+const COMPACT_QUERY = window.matchMedia("(max-width: 1100px) and (max-height: 700px)");
+function syncCompact() {
+  const simulating = document.documentElement.classList.contains("simulate-pi");
+  document.body.classList.toggle("is-compact", simulating || COMPACT_QUERY.matches);
+}
+
 function boot() {
+  applySimulateMode();
+  syncCompact();
+  COMPACT_QUERY.addEventListener("change", syncCompact);
   renderClock();
   refreshPrayer();
   refreshWeather();

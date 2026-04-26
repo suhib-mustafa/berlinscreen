@@ -9,3 +9,17 @@ venv/
 audio/*.mp3
 audio/*.wav
 !audio/.gitkeep
+
+# SSH keys / Pi connection notes — never commit
+id_ed25519*
+id_rsa*
+*.pem
+*.key
+pi-host*
+*.pi.env
+
+# Local env files that may contain real credentials.
+# The tracked deploy/berlinscreen.env.example is intentionally credential-free.
+deploy/berlinscreen.env
+deploy/*env* copy*
+deploy/*.env.local

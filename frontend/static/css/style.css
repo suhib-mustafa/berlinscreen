@@ -135,11 +135,12 @@ html, body {
 .prayer-tiles li {
   background: #0d131b;
   border-radius: 12px;
-  padding: 16px 10px;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 4px;
   text-align: center;
   min-width: 0;
 }
@@ -237,6 +238,7 @@ html, body {
   max-height: 60px;
   overflow: hidden;
 }
+.transit-disruptions[hidden] { display: none; }
 .transit-disruptions .disruption-row {
   white-space: nowrap;
   overflow: hidden;
@@ -253,7 +255,7 @@ html, body {
 }
 .transit-header {
   display: grid;
-  grid-template-columns: 110px 1fr 130px;
+  grid-template-columns: 110px 1fr 200px;
   gap: 16px;
   font-family: "JetBrains Mono", "Courier New", monospace;
   font-weight: 700;
@@ -286,7 +288,7 @@ html, body {
 }
 .transit-row {
   display: grid;
-  grid-template-columns: 110px 1fr 130px;
+  grid-template-columns: 110px 1fr 200px;
   gap: 16px;
   align-items: center;
   color: #f6c700;
@@ -330,3 +332,106 @@ html, body {
 .facility-chip.is-bad { color: #ef4444; }
 .facility-chip.is-unknown { color: #555; font-style: italic; }
 .facility-chip .facility-label { color: #888; margin-right: 4px; }
+
+/* ---------- Pi-screen simulator (?simulate or ?simulate=1024) ---------- */
+
+html.simulate-pi {
+  background: #000;
+  height: auto;
+}
+html.simulate-pi body {
+  width: 800px;
+  height: 480px;
+  margin: 24px auto;
+  outline: 2px dashed #f6c700;
+  outline-offset: 4px;
+  overflow: hidden;
+  position: relative;
+}
+html.simulate-pi .grid {
+  width: 800px;
+  height: 480px;
+}
+html.simulate-pi.simulate-1024 body,
+html.simulate-pi.simulate-1024 .grid {
+  width: 1024px;
+  height: 600px;
+}
+.simulate-label {
+  position: fixed;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f6c700;
+  color: #000;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 10px;
+  border-radius: 0 0 6px 6px;
+  z-index: 9999;
+}
+
+/* ---------- Responsive: 7" screens (≤1024×600 and ≤800×480) ---------- */
+
+/* Compact mode toggled by JS for real ≤1100×700 viewports OR ?simulate. */
+
+body.is-compact .grid {
+  gap: 6px;
+  padding: 6px;
+  grid-template-rows: auto 0.85fr 1.7fr;
+}
+body.is-compact .panel { padding: 10px 14px; }
+
+body.is-compact .clock { padding: 6px 16px; gap: 12px; }
+body.is-compact .clock .bear { height: 52px; }
+body.is-compact .clock-time { font-size: 56px; letter-spacing: 0; }
+body.is-compact .clock-day { font-size: 16px; }
+body.is-compact .clock-cal { font-size: 12px; }
+body.is-compact .clock-hijri { font-size: 11px; }
+
+body.is-compact .prayer { grid-template-columns: 1fr 2.6fr; gap: 14px; }
+body.is-compact .prayer-hero { padding-right: 12px; }
+body.is-compact .hero-eyebrow { font-size: 11px; letter-spacing: 2px; }
+body.is-compact .hero-countdown { font-size: 36px; margin-top: 4px; }
+body.is-compact .hero-detail { font-size: 15px; margin-top: 6px; }
+body.is-compact .hero-jumua { font-size: 11px; margin-top: 6px; }
+body.is-compact .prayer-tiles { gap: 6px; }
+body.is-compact .prayer-tiles li { padding: 8px 4px; gap: 2px; }
+body.is-compact .prayer-tiles .name { font-size: 10px; letter-spacing: 1px; }
+body.is-compact .prayer-tiles .adhan { font-size: 20px; margin-top: 2px; }
+body.is-compact .prayer-tiles .iqama { font-size: 10px; margin-top: 1px; }
+
+body.is-compact .weather-icon { font-size: 56px; margin-bottom: 0; }
+body.is-compact .weather-temp { font-size: 42px; }
+body.is-compact .weather-desc { font-size: 13px; }
+body.is-compact .weather-meta { font-size: 11px; margin-top: 4px; }
+body.is-compact .weather-rain { font-size: 11px; margin-top: 4px; padding: 2px 8px; }
+
+body.is-compact .transit { padding: 8px 12px; }
+body.is-compact .transit-disruptions {
+  font-size: 11px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  max-height: 40px;
+}
+body.is-compact .transit-header {
+  grid-template-columns: 70px 1fr 140px;
+  gap: 8px;
+  font-size: 13px;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+body.is-compact .transit-row {
+  grid-template-columns: 70px 1fr 140px;
+  gap: 8px;
+  font-size: 18px;
+  line-height: 1.15;
+}
+body.is-compact .transit-stop { padding: 2px 0; }
+body.is-compact .transit-stop-name { font-size: 10px; letter-spacing: 1px; margin-bottom: 1px; }
+body.is-compact .transit-empty { font-size: 12px; }
+body.is-compact .facility-strip { gap: 4px; margin-bottom: 4px; font-size: 10px; }
+body.is-compact .facility-chip { padding: 2px 6px; }

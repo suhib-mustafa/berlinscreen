@@ -24,6 +24,7 @@ STOPS = [
     {"name": "U Afrikanische Str. → Alt-Mariendorf", "query": "U Afrikanische Str", "lines": ["U6"], "direction_contains": "Alt-Mariendorf"},
     {"name": "Kapweg → Osloer Str.",                 "query": "Kapweg, Berlin",   "lines": ["125", "128"], "direction_contains": "Osloer"},
     {"name": "Kurt-Schumacher-Platz → Jungfernheide", "query": "Kurt-Schumacher-Platz, Berlin", "lines": ["M21", "X21"], "direction_contains": "Jungfernheide"},
+    {"name": "Weltlingerbrücke → Zoologischer Garten", "query": "Weltlingerbrücke, Berlin", "lines": ["109"], "direction_contains": "Zoologischer Garten"},
 ]
 
 BVG_BASE = "https://v6.bvg.transport.rest"
