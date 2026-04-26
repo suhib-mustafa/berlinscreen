@@ -4,6 +4,7 @@ from flask import Flask, jsonify, render_template
 
 import adhan
 import bvg
+import facility
 import mawaqit
 import weather
 
@@ -41,6 +42,14 @@ def api_weather():
 def api_transit():
     try:
         return jsonify(bvg.snapshot())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+@app.route("/api/facility")
+def api_facility():
+    try:
+        return jsonify(facility.snapshot())
     except Exception as e:
         return jsonify({"error": str(e)}), 502
 
