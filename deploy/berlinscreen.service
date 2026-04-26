@@ -1,0 +1,18 @@
+[Unit]
+Description=BerlinScreen dashboard (Flask)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=suhib91
+WorkingDirectory=/home/suhib91/berlinscreen/backend
+Environment=PYTHONIOENCODING=utf-8
+ExecStart=/home/suhib91/berlinscreen/backend/.venv/bin/python app.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
