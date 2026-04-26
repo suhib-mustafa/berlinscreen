@@ -29,3 +29,8 @@ ADHAN_FAJR_ENABLED = os.environ.get("ADHAN_FAJR", "0") == "1"
 PRAYER_CACHE_SECONDS = 24 * 3600
 WEATHER_CACHE_SECONDS = 600
 TRANSIT_CACHE_SECONDS = 30
+
+# DeepL translation for BVG disruption messages (German -> English).
+# Free tier signup: https://www.deepl.com/pro-api  (free keys end in ":fx").
+# When unset, disruption messages stay in German verbatim from BVG.
+DEEPL_API_KEY = os.environ.get("DEEPL_API_KEY", "")
