@@ -28,16 +28,16 @@ _cache: dict = {"data": None, "fetched_at": 0.0}
 
 def _fetch_sbahn() -> tuple[list, list]:
     """Returns (per-station entries, errors)."""
-    if not config.DB_FASTA_API_KEY:
+    if not config.DB_FASTA_API_KEY or not config.DB_CLIENT_ID:
         return (
             [{"station": s["name"], "outages": None} for s in config.WATCHED_SBAHN_STATIONS],
-            ["sbahn: DB_FASTA_API_KEY not configured"],
+            ["sbahn: DB_CLIENT_ID and/or DB_FASTA_API_KEY not configured"],
         )
 
     station_numbers = ",".join(str(s["station_number"]) for s in config.WATCHED_SBAHN_STATIONS)
     headers = {
         "Accept": "application/json",
-        "DB-Client-Id": "berlinscreen",
+        "DB-Client-Id": config.DB_CLIENT_ID,
         "DB-Api-Key": config.DB_FASTA_API_KEY,
     }
     params = {"type": "ESCALATOR,ELEVATOR", "stationnumbers": station_numbers}
