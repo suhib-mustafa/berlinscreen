@@ -73,9 +73,12 @@ _DISRUPTION_TYPES = {"warning", "status"}
 # Stop-level facility remarks (broken elevator/escalator at the platform)
 # get attached by BVG to every departure at that stop, including buses
 # and trams. They are not service disruptions for the line — the facility
-# chip strip handles this domain. Match the German source (pre-DeepL) to
-# avoid burning translation quota on remarks we discard.
-_FACILITY_REMARK_KEYWORDS = ("aufzug", "fahrtreppe", "rolltreppe")
+# chip strip handles this domain. BVG sometimes returns these remarks in
+# German and sometimes already in English, so match keywords from both.
+_FACILITY_REMARK_KEYWORDS = (
+    "aufzug", "fahrtreppe", "rolltreppe",      # German
+    "elevator", "escalator", "lift",           # English
+)
 
 # Translation cache: German source string -> English translation. Keyed by the
 # raw German since BVG repeats the same text across departures and across
