@@ -70,6 +70,13 @@ def _minutes_until(iso: str | None) -> int | None:
 
 _DISRUPTION_TYPES = {"warning", "status"}
 
+# Stop-level facility remarks (broken elevator/escalator at the platform)
+# get attached by BVG to every departure at that stop, including buses
+# and trams. They are not service disruptions for the line — the facility
+# chip strip handles this domain. Match the German source (pre-DeepL) to
+# avoid burning translation quota on remarks we discard.
+_FACILITY_REMARK_KEYWORDS = ("aufzug", "fahrtreppe", "rolltreppe")
+
 # Translation cache: German source string -> English translation. Keyed by the
 # raw German since BVG repeats the same text across departures and across
 # polling cycles. In-memory only — restart re-translates, which is fine.
@@ -127,6 +134,9 @@ def _extract_remarks(d: dict, line: str, seen: set, out: list) -> None:
             continue
         summary = (r.get("summary") or r.get("text") or "").strip()
         if not summary:
+            continue
+        lowered = summary.lower()
+        if any(kw in lowered for kw in _FACILITY_REMARK_KEYWORDS):
             continue
         code = r.get("code") or ""
         key = (code, line, summary[:80])
