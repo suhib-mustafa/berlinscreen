@@ -68,7 +68,12 @@ DB_CLIENT_ID = os.environ.get("DB_CLIENT_ID", "")
 DB_FASTA_API_KEY = os.environ.get("DB_FASTA_API_KEY", "")
 WATCHED_LINES = [s for s in os.environ.get("WATCHED_LINES", "U6,U7,U8").split(",") if s.strip()]
 WATCHED_SBAHN_STATIONS = [
-    {"name": "S-Wedding", "station_number": 8089137},
+    # FaSta uses its own short station numbers, not the 8-digit BVG/HAFAS
+    # EVA number. S-Wedding = 7756 (verified by geocoord lookup against
+    # /v2/facilities). The /v2/stations endpoint returns 404 on this tier,
+    # so add new stations here by querying facilities and filtering by
+    # geocoord around the target station.
+    {"name": "S-Wedding", "station_number": 7756},
 ]
 FACILITY_CACHE_SECONDS = 600  # 10 min — facility status changes slowly
 
