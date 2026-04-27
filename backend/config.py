@@ -64,6 +64,7 @@ SCREEN_ON_HOUR = int(os.environ.get("SCREEN_ON_HOUR", "6"))
 # outages=None and the dashboard renders a placeholder.
 # U-Bahn fetcher is currently a stub: BVG does not publish a clean JSON
 # endpoint as of 2026-04, see backend/facility.py for the search history.
+DB_CLIENT_ID = os.environ.get("DB_CLIENT_ID", "")
 DB_FASTA_API_KEY = os.environ.get("DB_FASTA_API_KEY", "")
 WATCHED_LINES = [s for s in os.environ.get("WATCHED_LINES", "U6,U7,U8").split(",") if s.strip()]
 WATCHED_SBAHN_STATIONS = [
