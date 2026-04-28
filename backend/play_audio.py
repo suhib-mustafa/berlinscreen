@@ -46,9 +46,9 @@ def play(path: str) -> int:
     alsa_dev = os.environ.get("ADHAN_ALSA_DEVICE", "").strip()
     candidates = []
     if alsa_dev:
-        candidates.append(["mpg123", "-q", "-a", alsa_dev, path])
-        candidates.append(["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet",
-                           "-f", "alsa", "-audio_device", alsa_dev, path])
+        # `-o alsa` forces mpg123 onto the ALSA backend; otherwise it
+        # defaults to PulseAudio and ignores -a entirely.
+        candidates.append(["mpg123", "-q", "-o", "alsa", "-a", alsa_dev, path])
         candidates.append(["aplay", "-q", "-D", alsa_dev, path])
     candidates += [
         ["mpg123", "-q", path],
