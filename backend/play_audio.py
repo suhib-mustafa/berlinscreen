@@ -39,17 +39,31 @@ def play(path: str) -> int:
     if system == "Darwin":
         return subprocess.run(["afplay", path]).returncode
 
-    # Linux (Pi). Try a few players.
-    for cmd in (
+    # Linux (Pi). Try a few players. ADHAN_ALSA_DEVICE (e.g. "hw:vc4hdmi1")
+    # forces the player onto a specific ALSA device — needed when the
+    # systemd service runs without a user session and PipeWire (which
+    # normally hijacks ALSA "default") is unreachable.
+    alsa_dev = os.environ.get("ADHAN_ALSA_DEVICE", "").strip()
+    candidates = []
+    if alsa_dev:
+        candidates.append(["mpg123", "-q", "-a", alsa_dev, path])
+        candidates.append(["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet",
+                           "-f", "alsa", "-audio_device", alsa_dev, path])
+        candidates.append(["aplay", "-q", "-D", alsa_dev, path])
+    candidates += [
         ["mpg123", "-q", path],
         ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", path],
         ["paplay", path],
         ["aplay", "-q", path],
-    ):
+    ]
+    for cmd in candidates:
         try:
-            return subprocess.run(cmd).returncode
+            rc = subprocess.run(cmd).returncode
+            if rc == 0:
+                return rc
         except FileNotFoundError:
             continue
+    return rc if 'rc' in locals() else 1
 
     print("[play_audio] no audio player found on Linux (tried mpg123, ffplay, paplay, aplay)", file=sys.stderr)
     return 3
